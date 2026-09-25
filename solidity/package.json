@@ -9,6 +9,7 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "chai": "^4.4.1",
+    "dotenv": "^16.4.5",
     "ethers": "^6.13.0",
     "hardhat": "^2.22.0",
     "merkletreejs": "^0.3.11",

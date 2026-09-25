@@ -1,0 +1,10 @@
+node_modules/
+artifacts/
+cache/
+coverage/
+.git/
+.github/
+.env
+*.txt
+!go.mod
+!go.sum

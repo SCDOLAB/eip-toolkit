@@ -109,21 +109,33 @@ node scripts/merkle-gen.js
 Every push / PR to `main` runs four parallel jobs:
 
 1. `go-vet` — `go vet ./...`
-2. `go-test` — `go test ./go/...`
+2. `go-test` — `go test ./go/...` (includes RedisPendingPool tests via miniredis)
 3. `solhint` — Solidity lint
 4. `hardhat-test` — contract unit tests
 
-## Pushing to GitHub
+## Docker / docker-compose
+
+Spin up logfilter + Redis + Prometheus with one command:
 
 ```bash
-# 1. Create an empty repo on GitHub named eip-toolkit (do NOT init README/LICENSE).
-# 2. Inside this folder:
-git init
-git add .
-git commit -m "feat: eip-1559 basefee, merkle allowlist NFT, logfilter engine, CI"
-git branch -M main
-git remote add origin https://github.com/<your-username>/eip-toolkit.git
-git push -u origin main
+docker compose up --build
 ```
 
-Remember to update the module path in `go.mod` (`github.com/<your-username>/eip-toolkit`) after creating the repo.
+- logfilter metrics: http://localhost:8080/metrics
+- Prometheus: http://localhost:9090 (scrapes `logfilter:8080`)
+- Redis: localhost:6379
+
+## Deploying the contract
+
+```bash
+cd solidity
+cp .env.example .env   # fill in SEPOLIA_RPC_URL and DEPLOYER_PRIVATE_KEY
+npm install
+npx hardhat run scripts/deploy.js                # local
+npx hardhat run scripts/deploy.js --network sepolia
+```
+
+## Mint web page
+
+Open `web/index.html` in a browser (any static host works, or just double-click it), paste the deployed contract address, connect MetaMask, and mint. It uses ethers v6 from CDN — no build step.
+

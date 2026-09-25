@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Merkle NFT Mint</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 480px; margin: 4rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.5rem; }
+    button { padding: .6rem 1rem; margin-right: .5rem; cursor: pointer; }
+    label { display: block; margin-top: 1rem; font-size: .85rem; color: #555; }
+    input, textarea { width: 100%; padding: .4rem; margin-top: .25rem; box-sizing: border-box; }
+    #status { margin-top: 1.5rem; padding: .75rem; background: #f4f4f4; border-radius: 6px; font-size: .9rem; }
+    .muted { color: #888; font-size: .8rem; }
+  </style>
+</head>
+<body>
+  <h1>Merkle NFT Mint</h1>
+  <p class="muted">Set CONTRACT_ADDRESS below after deploy, then connect MetaMask.</p>
+
+  <label>Contract address
+    <input id="addr" value="0x..." />
+  </label>
+
+  <button id="connect">Connect MetaMask</button>
+
+  <h3 style="margin-top:2rem">Allowlist mint</h3>
+  <label>Merkle proof (JSON array of 0x strings)
+    <textarea id="proof" rows="3" placeholder='["0x...","0x..."]'></textarea>
+  </label>
+  <label>Quantity
+    <input id="wlQty" type="number" value="1" min="1" max="2" />
+  </label>
+  <button id="wlMint">Mint (WL)</button>
+
+  <h3 style="margin-top:2rem">Public mint</h3>
+  <label>Quantity
+    <input id="pubQty" type="number" value="1" min="1" max="5" />
+  </label>
+  <button id="pubMint">Mint (Public)</button>
+
+  <div id="status">Not connected.</div>
+
+  <script type="module">
+    import { ethers } from "https://esm.sh/ethers@6.13.0";
+
+    const ABIS = [
+      "function wlMintActive() view returns (bool)",
+      "function publicMintActive() view returns (bool)",
+      "function totalSupply() view returns (uint256)",
+      "function WL_PRICE() view returns (uint256)",
+      "function PUBLIC_PRICE() view returns (uint256)",
+      "function wlMint(uint256 quantity, bytes32[] calldata proof) external payable",
+      "function publicMint(uint256 quantity) external payable",
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    const status = (msg) => { $("status").textContent = msg; console.log(msg); };
+
+    let signer, contract;
+
+    async function connect() {
+      if (!window.ethereum) return status("MetaMask not found.");
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      signer = await provider.getSigner();
+      const address = $("addr").value.trim();
+      contract = new ethers.Contract(address, ABIS, signer);
+      const total = await contract.totalSupply();
+      status(`Connected as ${await signer.getAddress()} · totalSupply=${total}`);
+    }
+
+    async function wlMint() {
+      try {
+        const proof = JSON.parse($("proof").value || "[]");
+        const qty = BigInt($("wlQty").value);
+        const price = await contract.WL_PRICE();
+        status("Submitting WL mint...");
+        const tx = await contract.wlMint(qty, proof, { value: price * qty });
+        await tx.wait();
+        status(`WL mint confirmed: ${tx.hash}`);
+      } catch (e) {
+        status("WL mint failed: " + (e.reason || e.message));
+      }
+    }
+
+    async function pubMint() {
+      try {
+        const qty = BigInt($("pubQty").value);
+        const price = await contract.PUBLIC_PRICE();
+        status("Submitting public mint...");
+        const tx = await contract.publicMint(qty, { value: price * qty });
+        await tx.wait();
+        status(`Public mint confirmed: ${tx.hash}`);
+      } catch (e) {
+        status("Public mint failed: " + (e.reason || e.message));
+      }
+    }
+
+    $("connect").onclick = connect;
+    $("wlMint").onclick = wlMint;
+    $("pubMint").onclick = pubMint;
+  </script>
+</body>
+</html>
