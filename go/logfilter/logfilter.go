@@ -861,15 +861,3 @@ func NewShutdownContext(parent context.Context) (context.Context, <-chan struct{
 	}()
 	return ctx, stopCh
 }
-
-func main() {
-	ctx, stopCh := NewShutdownContext(context.Background())
-	StartMetricsServer(":8080", stopCh)
-
-	globalRPCSem := NewRPCSemaphore(3)
-	_ = globalRPCSem // in production, build RealRPC and tasks; see README.
-
-	fmt.Println("logfilter skeleton running. configure RPC endpoint and tasks in main()")
-	<-ctx.Done()
-	fmt.Println("bye")
-}

@@ -1,5 +1,8 @@
 # eip-toolkit
 
+![CI](https://github.com/SCDOLAB/eip-toolkit/actions/workflows/ci.yml/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A small toolkit for EIP-1559 base fee math, Merkle allowlist NFTs, and a production-grade Ethereum log filter engine.
 
 ## Layout
@@ -118,12 +121,15 @@ Every push / PR to `main` runs four parallel jobs:
 Spin up logfilter + Redis + Prometheus with one command:
 
 ```bash
+cp .env.example .env   # fill in RPC_URL and CONTRACT_ADDRESS
 docker compose up --build
 ```
 
 - logfilter metrics: http://localhost:8080/metrics
 - Prometheus: http://localhost:9090 (scrapes `logfilter:8080`)
 - Redis: localhost:6379
+
+The daemon resumes from `CHECKPOINT_FILE` on restart and uses Redis as the pending-block buffer when `REDIS_ADDR` is set.
 
 ## Deploying the contract
 
