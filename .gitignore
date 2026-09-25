@@ -1,0 +1,24 @@
+# Go
+/bin/
+*.test
+*.out
+coverage.txt
+
+# Node / Hardhat
+node_modules/
+artifacts/
+cache/
+coverage/
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# Local checkpoints
+checkpoint*.txt

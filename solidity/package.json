@@ -1,0 +1,20 @@
+{
+  "name": "merkle-nft",
+  "version": "1.0.0",
+  "description": "Merkle allowlist + public mint ERC721 demo with Hardhat tests",
+  "scripts": {
+    "test": "hardhat test",
+    "lint": "solhint 'contracts/**/*.sol'"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "chai": "^4.4.1",
+    "ethers": "^6.13.0",
+    "hardhat": "^2.22.0",
+    "merkletreejs": "^0.3.11",
+    "solhint": "^5.0.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0"
+  }
+}
