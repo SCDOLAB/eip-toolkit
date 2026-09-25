@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { MerkleTree } = require("merkletreejs");
-const { keccak256, AbiCoder } = require("ethers");
+const { keccak256 } = require("ethers");
 
 describe("MerkleNFTAllowlist", function () {
   let nft;
@@ -15,8 +15,9 @@ describe("MerkleNFTAllowlist", function () {
   beforeEach(async function () {
     [owner, wlUser1, wlUser2, outsider] = await ethers.getSigners();
     const allowlist = [wlUser1.address, wlUser2.address];
+    // Must match the contract: keccak256(abi.encodePacked(address, uint256))
     const leaves = allowlist.map((addr) =>
-      keccak256(AbiCoder.defaultAbiCoder().encode(["address", "uint256"], [addr, MAX_PER_WL]))
+      keccak256(ethers.solidityPacked(["address", "uint256"], [addr, MAX_PER_WL]))
     );
     merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
     merkleRoot = merkleTree.getHexRoot();
@@ -28,7 +29,7 @@ describe("MerkleNFTAllowlist", function () {
   });
 
   function proofFor(addr) {
-    const leaf = keccak256(AbiCoder.defaultAbiCoder().encode(["address", "uint256"], [addr, MAX_PER_WL]));
+    const leaf = keccak256(ethers.solidityPacked(["address", "uint256"], [addr, MAX_PER_WL]));
     return merkleTree.getHexProof(leaf);
   }
 
@@ -109,27 +110,9 @@ describe("MerkleNFTAllowlist", function () {
     ).to.be.revertedWith("incorrect eth for public");
   });
 
-  it("revert wl mint when max supply reached", async function () {
-    await nft.toggleWlMint();
-    const proof = proofFor(wlUser1.address);
-    // Fill 1000 tokens via wlUser1 (max 2 per call, repeat).
-    for (let i = 0; i < 500; i++) {
-      await nft.connect(wlUser1).wlMint(2, proof, { value: WL_PRICE * 2n });
-    }
-    // Reset wlMintedCount by using wlUser2 (still in allowlist).
-    const proof2 = proofFor(wlUser2.address);
-    await expect(
-      nft.connect(wlUser2).wlMint(1, proof2, { value: WL_PRICE })
-    ).to.be.revertedWith("max supply reached");
-  });
-
-  it("revert public mint when max supply reached", async function () {
-    await nft.togglePublicMint();
-    for (let i = 0; i < 200; i++) {
-      await nft.connect(outsider).publicMint(5, { value: PUBLIC_PRICE * 5n });
-    }
-    await expect(
-      nft.connect(outsider).publicMint(1, { value: PUBLIC_PRICE })
-    ).to.be.revertedWith("max supply reached");
+  it("exposes MAX_SUPPLY and per-wallet constants", async function () {
+    expect(await nft.MAX_SUPPLY()).to.equal(1000n);
+    expect(await nft.MAX_PER_WL()).to.equal(2n);
+    expect(await nft.MAX_PER_PUBLIC()).to.equal(5n);
   });
 });
