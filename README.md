@@ -69,6 +69,10 @@ Supported RPC methods: `scdo_getBlockHeight`, `scdo_getBalance`, `scdo_getAccoun
 
 #### SCDO V1.0.0 EVM compatibility patch
 
+> **Upgraded?** If you have upgraded your node binary to Istanbul (see
+> [docs/scdo-v1-to-istanbul-upgrade.md](docs/scdo-v1-to-istanbul-upgrade.md)),
+> you can skip patching entirely and deploy standard solc output directly.
+
 SCDO V1.0.0's EVM jump table does not recognize the Byzantium `REVERT (0xfd)` opcode. Any bytecode containing `0xfd` deploys but immediately fails with `evm: execution reverted`. Before deploying, patch the bytecode:
 
 ```go
