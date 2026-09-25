@@ -21,5 +21,10 @@ module.exports = {
       chainId: 11155111,
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
     },
+    scdo: {
+      url: process.env.SCDO_RPC_URL || "http://192.168.50.50:8037",
+      chainId: Number(process.env.SCDO_CHAIN_ID || 0),
+      accounts: process.env.SCDO_DEPLOYER_PRIVATE_KEY ? [process.env.SCDO_DEPLOYER_PRIVATE_KEY] : [],
+    },
   },
 };
