@@ -1,4 +1,4 @@
-module github.com/example/eip-toolkit
+module github.com/SCDOLAB/eip-toolkit
 
 go 1.23
 
