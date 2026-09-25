@@ -67,6 +67,21 @@ if receipt != nil && receipt.Failed {
 
 Supported RPC methods: `scdo_getBlockHeight`, `scdo_getBalance`, `scdo_getAccountNonce`, `scdo_addTx`, `scdo_getReceiptByTxHash`.
 
+#### SCDO V1.0.0 EVM compatibility patch
+
+SCDO V1.0.0's EVM jump table does not recognize the Byzantium `REVERT (0xfd)` opcode. Any bytecode containing `0xfd` deploys but immediately fails with `evm: execution reverted`. Before deploying, patch the bytecode:
+
+```go
+import "github.com/SCDOLAB/eip-toolkit/go/scdo"
+
+patched, err := scdo.PatchBytecodeHex(bytecodeHex)
+// patched has every 0xfd replaced with 0x00 (STOP)
+```
+
+This replaces REVERT with STOP. For constructor guards (`require(msg.value == 0)`) this means the constructor halts instead of reverting — acceptable for deployment. Runtime `require()` calls will halt rather than revert state; guard those at the caller.
+
+One-command bridge deployment: `bash scripts/deploy-scdo-bridge.sh`.
+
 ### logfilter features
 
 - Batched `eth_getLogs` with automatic batch shrink on range/rate-limit errors.
