@@ -12,9 +12,13 @@ eip-toolkit/
 ├── go/
 │   ├── eip1559/        # BaseFee calculator + unit tests
 │   ├── merkle/         # OpenZeppelin-compatible Merkle tree/proof + tests
-│   └── logfilter/      # Batch log filter engine (RPC, checkpoint, reorg protection, live mode, metrics)
+│   ├── logfilter/      # Batch log filter engine (RPC, checkpoint, reorg protection, live mode, metrics)
+│   ├── bridge/         # Cross-chain lock/mint bridge types
+│   └── scdo/           # SCDO PoW chain RPC client (block height, balance, nonce, tx send, receipts)
 ├── solidity/
 │   ├── contracts/MerkleNFTAllowlist.sol
+│   ├── contracts/BridgeLock.sol
+│   ├── contracts/BridgeMint.sol
 │   ├── test/MerkleNFTAllowlist.test.js
 │   ├── hardhat.config.js
 │   └── package.json
@@ -39,6 +43,29 @@ go test ./go/...
 # Vet
 go vet ./...
 ```
+
+### scdo package
+
+Go client for the [SCDO](https://github.com/scdoproject/go-scdo) PoW chain. SCDO is EVM-compatible but uses its own JSON-RPC namespace (`scdo_*`) and Base58 addresses starting with `1`.
+
+```go
+import "github.com/SCDOLAB/eip-toolkit/go/scdo"
+
+client, _ := scdo.Dial("http://192.168.50.50:8037")
+
+// Read chain state
+height, _ := client.BlockHeight(ctx)
+bal, _   := client.Balance(ctx, "0xYourAddress", -1)
+nonce, _ := client.Nonce(ctx, "0xYourAddress", -1)
+
+// Query a mined tx
+receipt, _ := client.GetReceipt(ctx, "0xTxHash")
+if receipt != nil && receipt.Failed {
+    log.Println("tx reverted:", receipt.Result)
+}
+```
+
+Supported RPC methods: `scdo_getBlockHeight`, `scdo_getBalance`, `scdo_getAccountNonce`, `scdo_addTx`, `scdo_getReceiptByTxHash`.
 
 ### logfilter features
 
